@@ -1,34 +1,60 @@
-# data from https://allisonhorst.github.io/palmerpenguins/
+import plotly.graph_objects as go
+import plotly.figure_factory as ff
 
-import matplotlib.pyplot as plt
-import numpy as np
+table_data = [
+    ['Coin', 'Month', 'Params', 'Timeframe'],
+    ['BTC', '01', '2.3/1.8', '30m'],
+    ['ETH', '01', '2.3/1.8', '30m'],
+    ['RUNE', '01', '2.3/1.8', '30m'],
+    ['TIA', '01', '2.3/1.8', '30m'],
+]
 
-species = ("Adelie", "Chinstrap", "Gentoo")
-penguin_means = {
-    'Bill Depth': (18.35, 18.43, 14.98),
-    'Bill Length': (38.79, 48.83, 47.50),
-    'Flipper Length': (189.95, 195.82, 217.19),
-}
+fig = ff.create_table(table_data, height_constant=60)
 
-x = np.arange(len(species))  # the label locations
-width = 0.25  # the width of the bars
-multiplier = 0
+coins = [
+    'BTCUSDT', 'ETHUSDT', 'ADAUSDT',
+]
+months_name = ['Янв', 'Февр', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Октб', 'Нояб', 'Дек']
+data = {}
+for coin in coins:
+    data[coin] = [1,2,3,4,5,6,7,8,9,10,11,12]
 
-fig, ax = plt.subplots(layout='constrained')
 
-for attribute, measurement in penguin_means.items():
-    offset = width * multiplier
-    rects = ax.bar(x + offset, measurement, width, label=attribute)
-    ax.bar_label(rects, padding=3)
-    multiplier += 1
+for coin in coins:
+    trace = go.Bar(x=months_name, y=data[coin], xaxis='x3', yaxis='y3', marker=dict(color='#0099ff'), name=coin)
+    fig.add_trace([trace])
 
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Length (mm)')
-ax.set_title('Penguin attributes by species')
-ax.set_xticks(x + width, species)
-ax.legend(loc='upper left', ncols=3)
-ax.set_ylim(0, 250)
 
-plt.show()
+# initialize xaxis2 and yaxis2
+fig['layout']['xaxis2'] = {}
+fig['layout']['yaxis2'] = {}
+
+# Edit layout for subplots
+fig.layout.yaxis.update({'domain': [0, .45]})
+fig.layout.yaxis2.update({'domain': [.6, 1]})
+
+
+# The graph's yaxis2 MUST BE anchored to the graph's xaxis2 and vice versa
+fig.layout.yaxis2.update({'anchor': 'x2'})
+fig.layout.xaxis2.update({'anchor': 'y2'})
+fig.layout.yaxis2.update({'title': 'Goals'})
+
+# Update the margins to add a title and see graph x-labels.
+fig.layout.margin.update({'t':75, 'l':50})
+fig.layout.update({'title': '2016 Hockey Stats'})
+
+# Update the height because adding a graph vertically will interact with
+# the plot height calculated for the table
+fig.layout.update({'height':800})
+
+# Plot!
+fig.show()
+
+
+
+
+
+
+
 
 

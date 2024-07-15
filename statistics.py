@@ -9,7 +9,8 @@ from backtest_gpt4 import Backtest
 
 class Statistics:
     def __init__(self, budget, trade_percentage, leverage):
-        self.coins = ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 
+        self.coin_list = [
+            'BTCUSDT', 'ETHUSDT', 'ADAUSDT', 
             'ATOMUSDT', 'LINKUSDT', 'BNBUSDT', 
             'IOTAUSDT', 'ICPUSDT', 'KAVAUSDT',
             'AVAXUSDT', 'AAVEUSDT', 'APEUSDT',
@@ -21,7 +22,13 @@ class Statistics:
             'STRKUSDT', 'FETUSDT','1000PEPEUSDT',
             'AGIXUSDT', 'LDOUSDT', 'TONUSDT'
             'INJUSDT', 'ORDIUSDT', 'GALAUSDT',
-            'LTCUSDT']
+            'LTCUSDT'
+        ]
+
+        self.coins = [
+            'ADAUSDT', 'LINKUSDT', 'KAVAUSDT',
+            'APEUSDT', 'ROSEUSDT', 'MATICUSDT',
+        ]
 
         self.months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
         self.months_name = ['Янв', 'Февр', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Октб', 'Нояб', 'Дек']
@@ -40,8 +47,14 @@ class Statistics:
             {'take': 3.0, 'stop': 2.5}
         ]
 
-        self.color_initial_budget = '#44bd32'
+        self.timeframes = ['15m', '30m', '1h', '2h', '4h']
+
+        self.color_initial_budget = '#3742fa'
         self.color_end_budget = '#0652DD'
+        self.higher_level = 150
+        self.higher_level_color = '#44bd32'
+        self.lower_level = 50
+        self.lower_level_color = '#ff4757'
         self.figuresize = (20, 12)
         self.layout = 'constrained'
 
@@ -71,7 +84,7 @@ class Statistics:
             ax.bar(result['params'], result['end_budget'], color=self.color_end_budget, label=f"{result['params']} | {result['total_signals']} | {result['amount_trades']} |")
         
         ax.set_ylabel('End Budget')
-        ax.set_title(f'Backtest Results {coin}')
+        ax.set_title(f'Backtest Results {coin} {timeframe} {month}')
         ax.legend()
         plt.show()
         
@@ -107,5 +120,65 @@ class Statistics:
     def get_budget_by_timestamp(self):
         ...   
     
-    def get_budget_per_year(self, coin, year):
-        ...
+    def get_budget_per_year_for_coins(self, year, timeframe, params):
+        results = {coin: [] for coin in self.coins}
+        for coin in self.coins:
+            for month in self.months:
+                df = self.binance.fetch_data_month(coin, f'{year}-{month}', timeframe)
+                bb_strategy = BBStrategy(df)
+                df = bb_strategy.run(df)
+                backtest = Backtest(df, self.budget, self.trade_percentage, self.leverage, params['take'], params['stop'])
+                stats = backtest.run()
+                results[coin].append(stats['end_budget'])
+
+        x = np.arange(len(self.months))
+        width = 0.15
+        multiplier = 0
+        fig, ax = plt.subplots(figsize=self.figuresize, layout=self.layout)
+        ax.axhline(y=self.budget, color=self.color_initial_budget, linestyle='--', label='Initial Budget')
+        ax.axhline(y=self.higher_level, color=self.higher_level_color, linestyle='--', linewidth=1.5)
+        ax.axhline(y=200, color=self.higher_level_color, linestyle='--', linewidth=1.5)
+        ax.axhline(y=self.lower_level, color=self.lower_level_color, linestyle='--', linewidth=1.5)
+        for key, value in results.items():
+            offset = width * multiplier
+            rects = ax.bar(x + offset, value, width, label=key)
+            ax.bar_label(rects, padding=3)
+            multiplier += 1
+        
+        ax.set_ylabel('Budget')
+        ax.set_title(f"Backtest Results: Timeframe: {timeframe} Take Profit: {params['take']} Stop Loss: {params['stop']}")
+        ax.set_xticks(x + width, self.months_name)
+        ax.legend(loc='upper left', ncols=7)
+        plt.show()
+
+    def get_budget_per_year_for_timeframes(self, coin, year, params):
+        results = {timeframe: [] for timeframe in self.timeframes}
+        for timeframe in self.timeframes:
+            for month in self.months:
+                df = self.binance.fetch_data_month(coin, f'{year}-{month}', timeframe)
+                bb_strategy = BBStrategy(df)
+                df = bb_strategy.run(df)
+                backtest = Backtest(df, self.budget, self.trade_percentage, self.leverage, params['take'], params['stop'])
+                stats = backtest.run()
+                results[timeframe].append(stats['end_budget'])
+        
+        x = np.arange(len(self.months))
+        width = 0.15
+        multiplier = 0
+        fig, ax = plt.subplots(figsize=self.figuresize, layout=self.layout)
+        ax.axhline(y=self.budget, color=self.color_initial_budget, linestyle='--', label='Initial Budget')
+        ax.axhline(y=self.higher_level, color=self.higher_level_color, linestyle='--', linewidth=1.5)
+        ax.axhline(y=200, color=self.higher_level_color, linestyle='--', linewidth=1.5)
+        ax.axhline(y=self.lower_level, color=self.lower_level_color, linestyle='--', linewidth=1.5)
+        for key, value in results.items():
+            offset = width * multiplier
+            rects = ax.bar(x + offset, value, width, label=key)
+            ax.bar_label(rects, padding=3)
+            multiplier += 1
+
+        ax.set_ylabel('Budget')
+        ax.set_title(f"Backtest Results: Coin: {coin} Take Profit: {params['take']} Stop Loss: {params['stop']}")
+        ax.set_xticks(x + width, self.months_name)
+        ax.legend(loc='upper left', ncols=7)
+        plt.show()
+            
