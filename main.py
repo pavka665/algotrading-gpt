@@ -2,12 +2,13 @@ from statistics import Statistics
 from backtest_gpt4 import Backtest
 from binance import Binance
 from bb_strategy import BBStrategy
+from macd_strategy import MACDStrategy
 
-coin = 'ETHUSDT'
-month = '2024-06'
-timeframe = '15m'
+coin = 'TIAUSDT'
+month = '2024-05'
+timeframe = '1h'
 
-budget = 1000
+budget = 100
 trade_percentage = 0.2
 leverage = 20
 
@@ -21,17 +22,24 @@ params = [
     {'take': 2.9, 'stop': 2.4},
     {'take': 3.0, 'stop': 2.5}
 ]
-# binance = Binance()
-# df = binance.fetch_data_month(coin, month, timeframe)
+binance = Binance()
+df = binance.fetch_data_month(coin, month, timeframe)
 # bb_strategy = BBStrategy(df)
 # df = bb_strategy.run(df)
+
+macd_strategy = MACDStrategy(df)
+df = macd_strategy.run()
+macd_strategy.plot()
 # param = params[0]
 # backtest = Backtest(df, budget, trade_percentage, leverage, param['take'], param['stop'])
 # stat = backtest.run()
 # backtest.plot()
 
-statistics = Statistics(budget, trade_percentage, leverage)
+# statistics = Statistics(budget, trade_percentage, leverage)
 # statistics.get_budget_per_month(coin, month, timeframe)
-statistics.get_budget_per_year_for_coins(2023, '30m', params[0])
+# statistics.get_budget_per_year_for_coins(2023, '30m', params[0])
 # statistics.get_budget_per_year_for_timeframes(coin, 2023, params[2])
+# statistics.get_budget_per_month_by_coins(month, timeframe)
+
+
 

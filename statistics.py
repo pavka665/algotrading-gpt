@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from binance import Binance
 from bybit import Bybit
 from bb_strategy import BBStrategy
+from macd_strategy import MACDStrategy
 from backtest_gpt4 import Backtest
 
 
@@ -66,8 +67,10 @@ class Statistics:
     def get_budget_per_month(self, coin, month, timeframe):
         results = []
         df = self.binance.fetch_data_month(coin, month, timeframe)
-        bb_strategy = BBStrategy(df)
-        df = bb_strategy.run(df)
+        # bb_strategy = BBStrategy(df)
+        # df = bb_strategy.run(df)
+        macd_strategy = MACDStrategy(df)
+        df = macd_strategy.run()
         for param in self.params:
             backtest = Backtest(df, self.budget, self.trade_percentage, self.leverage, param['take'], param['stop'])
             stats = backtest.run()
